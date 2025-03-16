@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "npx tsc-watch --pretty --onSuccess \"node dist/index.js\""
+    "dev": "npx tsc-watch --pretty --onSuccess \"node dist/server.js\""
   },
   "keywords": [],
   "author": "",
