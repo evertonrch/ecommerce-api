@@ -1,63 +1,71 @@
 import { NextFunction, Request, Response } from "express";
-import UUID from "node:crypto"
+import { getFirestore } from "firebase-admin/firestore"
 
 type User = {
-    id?: any
+    id?: string
     nome: string
     idade: number
     email: string
 }
 
-const usuarios: User[] = []
+const db = getFirestore().collection("users")
 
 export class UserController {
 
-    static getAll(req: Request, res: Response) {
-        if(usuarios.length === 0) {
+    static async getAll(req: Request, res: Response) {
+        const snapshot = await db.get()
+        if(snapshot.size === 0) {
             return res.status(204).send([])
         }
-        return res.status(200).send(usuarios)
-    }
 
-    static save(req: Request, res: Response) {
-        usuarios.push({...req.body, id: UUID.randomUUID() })
-        return res.status(201).send({
-            message: "usuário criado"
+        const users = snapshot.docs.map(doc => {
+            return {
+                id: doc.id,
+                ...doc.data() as User
+            }
         })
+        return res.status(200).send(users)
     }
 
-    static update(req: Request, res: Response) {
-        const index = usuarios.findIndex(user => user.id === req.params.id)
-            
-        const user = usuarios[index]
-        user.email = req.body.email
-        user.idade = req.body.idade
-        user.nome = req.body.nome
-        
-        return res.status(200).send({
-            message: `usuário ${user.id} atualizado.`
-        })
-    }
-
-    static delete(req: Request, res: Response) {
+    static async getById(req: Request, res: Response) {
         const id = req.params.id
-        const index = usuarios.findIndex(user => user.id === id)
-        if(index === -1) {
-            return res.status(404).send({
-                message: `usuário não encontrado.`
-            })
-        }
+        const user = await db.doc(id).get()
+        return res.status(200).send({id: user.id, ...user.data() as User})
+    }
 
-        const usuarioRemovido = usuarios[index]
-        usuarios.splice(index, 1)
-        return res.status(200).send({
-            message: `usuario ${usuarioRemovido.id} removido.`
+    static async save(req: Request, res: Response) {
+        const user = req.body as User
+        const saved = await db.add(user)
+
+        return res.status(201).send({
+            message: `usuário ${saved.id} salvo.`
         })
     }
 
-    static userNotExists(req: Request, res: Response, next: NextFunction) {
-        const user = usuarios.find(user => user.id === req.params.id)
-        if(!user) {
+    static async update(req: Request, res: Response) {
+        const id = req.params.id
+        const user = req.body as User
+
+        await db.doc(id).set({
+            nome: user.nome,
+            email: user.email,
+            idade: user.idade
+        })
+
+        return res.status(200).send({
+            message: `usuário alterado com sucesso.`
+        })    
+    }
+
+    static async delete(req: Request, res: Response) {
+        const id = req.params.id
+        await db.doc(id).delete()
+        return res.status(204).send()
+    }
+
+    static async userNotExists(req: Request, res: Response, next: NextFunction) {
+        const user = await db.doc(req.params.id).get()
+        if(!user.exists) {
             return res.status(404).send({
                 message: "usuário não encontrado"
             })
