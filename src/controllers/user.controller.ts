@@ -1,20 +1,13 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import { getFirestore } from "firebase-admin/firestore"
-import { ValidationError } from "../errors/validation.error";
 import { NotFoundError } from "../errors/not-found.error";
-
-type User = {
-    id?: string
-    nome: string
-    idade: number
-    email: string
-}
+import { User } from "../models/user.model";
 
 const db = getFirestore().collection("users")
 
 export class UserController {
 
-    static async getAll(req: Request, res: Response, next: NextFunction): Promise<any> {
+    static async getAll(req: Request, res: Response): Promise<any> {
         const snapshot = await db.get()
         if(snapshot.size === 0) {
             return res.status(204).send([])
@@ -29,7 +22,7 @@ export class UserController {
         return res.status(200).send(users)
     }
 
-    static async getById(req: Request, res: Response, next: NextFunction): Promise<any> {
+    static async getById(req: Request, res: Response): Promise<any> {
         const id = req.params.id
         const user = await db.doc(id).get()
         if(!user.exists) {
@@ -39,20 +32,8 @@ export class UserController {
         return res.status(200).send({id: user.id, ...user.data() as User})
     }
 
-    static async save(req: Request, res: Response, next: NextFunction): Promise<any> {
+    static async save(req: Request, res: Response): Promise<any> {
         const user = req.body as User
-        if(!user) {
-            throw new ValidationError("Nenhum dado enviado.")
-        }
-        
-        if (user?.id || user?.id?.length === 0) {
-            throw new ValidationError("ID não pode ser enviado.")
-        }
-        
-        if(user.idade <= 0 || UserController.isNotValid(user.email) || UserController.isNotValid(user.nome)) {
-            throw new ValidationError("Dados inválidos.")
-        }
-
         const saved = await db.add(user)
 
         return res.status(201).send({
@@ -60,7 +41,7 @@ export class UserController {
         })
     }
 
-    static async update(req: Request, res: Response, next: NextFunction): Promise<any> {
+    static async update(req: Request, res: Response): Promise<any> {
         const id = req.params.id
         const userRef = await db.doc(id).get()
         if(!userRef.exists) {
@@ -71,8 +52,7 @@ export class UserController {
 
         await db.doc(id).set({
             nome: user.nome,
-            email: user.email,
-            idade: user.idade
+            email: user.email
         })
 
         return res.status(200).send({
@@ -80,7 +60,7 @@ export class UserController {
         })    
     }
 
-    static async delete(req: Request, res: Response, next: NextFunction): Promise<any> {
+    static async delete(req: Request, res: Response): Promise<any> {
         const id = req.params.id
         const user = await db.doc(id).get()
         if(!user.exists) {
@@ -89,9 +69,5 @@ export class UserController {
         await db.doc(id).delete()
 
         return res.status(204).end()
-    }
-
-    private static isNotValid(value: string): boolean {
-        return !value || value.trim().length === 0
     }
 }
