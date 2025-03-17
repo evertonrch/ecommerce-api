@@ -60,7 +60,7 @@ export class UserController {
     static async delete(req: Request, res: Response) {
         const id = req.params.id
         await db.doc(id).delete()
-        return res.status(204).send()
+        return res.status(204).end()
     }
 
     static async userNotExists(req: Request, res: Response, next: NextFunction) {
