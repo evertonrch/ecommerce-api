@@ -1,72 +1,41 @@
 import { Request, Response } from "express";
-import { getFirestore } from "firebase-admin/firestore"
-import { NotFoundError } from "../errors/not-found.error";
 import { User } from "../models/user.model";
-
-const db = getFirestore().collection("users")
+import { UserService } from "../services/user.service";
 
 export class UserController {
 
     static async getAll(req: Request, res: Response): Promise<any> {
-        const snapshot = await db.get()
-        if(snapshot.size === 0) {
-            return res.status(204).send([])
+        const users = await new UserService().getAll()
+        if(users.length === 0) {
+            return res.status(204).end()
         }
-        const users = snapshot.docs.map(doc => {
-            return {
-                id: doc.id,
-                ...doc.data() as User
-            }
-        })
 
         return res.status(200).send(users)
     }
 
     static async getById(req: Request, res: Response): Promise<any> {
         const id = req.params.id
-        const user = await db.doc(id).get()
-        if(!user.exists) {
-            throw new NotFoundError("Usuário não encontrado.")
-        }
+        const user = await new UserService().getById(id)
 
-        return res.status(200).send({id: user.id, ...user.data() as User})
+        return res.status(200).send({id: user.id, ...user})
     }
 
     static async save(req: Request, res: Response): Promise<any> {
-        const user = req.body as User
-        const saved = await db.add(user)
-
-        return res.status(201).send({
-            message: `usuário ${saved.id} salvo.`
-        })
+        await new UserService().save(req.body)
+        return res.status(201).end()
     }
 
     static async update(req: Request, res: Response): Promise<any> {
         const id = req.params.id
-        const userRef = await db.doc(id).get()
-        if(!userRef.exists) {
-            throw new NotFoundError("Usuário não encontrado.")
-        }
-
         const user = req.body as User
+        await new UserService().update(id, user)
 
-        await db.doc(id).set({
-            nome: user.nome,
-            email: user.email
-        })
-
-        return res.status(200).send({
-            message: `usuário alterado com sucesso.`
-        })    
+        return res.status(204).end()
     }
 
     static async delete(req: Request, res: Response): Promise<any> {
         const id = req.params.id
-        const user = await db.doc(id).get()
-        if(!user.exists) {
-            throw new NotFoundError("Usuário não encontrado.")
-        }
-        await db.doc(id).delete()
+        await new UserService().delete(id)
 
         return res.status(204).end()
     }
