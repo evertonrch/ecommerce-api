@@ -1,10 +1,10 @@
 import { NotFoundError } from "../errors/not-found.error";
 import { User } from "../models/user.model";
-import { IUserRepository, UserRespositoryImpl } from "../repositories/user.repository";
+import { UserRepository, UserRespositoryImpl } from "../repositories/user.repository";
 
 export class UserService {
 
-    private userRepository: IUserRepository
+    private userRepository: UserRepository
 
     constructor() {
         this.userRepository = new UserRespositoryImpl()
@@ -16,9 +16,7 @@ export class UserService {
 
     async getById(id: string): Promise<User> {
         const user = await this.userRepository.getById(id)
-        if(!user.exists) {
-            throw new NotFoundError("Usuário não encontrado.")
-        }
+        this.userExists(user)
 
         return {
             id: user.id,
@@ -31,12 +29,18 @@ export class UserService {
     }
 
     async update(id: string, user: User): Promise<void> {
-        await this.getById(id)
+        this.userExists(id)
         await this.userRepository.update(id, user)
     }
 
     async delete(id: string): Promise<void> {
-        await this.getById(id)
+        this.userExists(id)
         await this.userRepository.delete(id)
+    }
+
+    private userExists(user: any) {
+        if(!user.exists) {
+            throw new NotFoundError("Usuário não encontrado.")
+        }
     }
 }
