@@ -1,3 +1,4 @@
+import "dotenv/config"
 import { log } from "node:console"
 import { initializeApp } from 'firebase-admin/app';
 initializeApp()
