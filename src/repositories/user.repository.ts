@@ -1,7 +1,7 @@
 import { CollectionReference, DocumentSnapshot, getFirestore } from 'firebase-admin/firestore';
 import { User } from './../models/user.model';
 
-export interface IUserRepository {
+export interface UserRepository {
     getAll: () => Promise<User[]>
     getById: (id: string) => Promise<DocumentSnapshot>
     save: (user: User) => Promise<void>
@@ -9,7 +9,7 @@ export interface IUserRepository {
     delete: (id: string) => Promise<void>
 }
 
-export class UserRespositoryImpl implements IUserRepository {
+export class UserRespositoryImpl implements UserRepository {
 
     private collection: CollectionReference
 
