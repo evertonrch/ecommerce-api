@@ -4,6 +4,7 @@ export type User = {
     id?: string
     nome: string
     email: string
+    senha?: string
 }
 
 export const userSchema = Joi.object().keys({

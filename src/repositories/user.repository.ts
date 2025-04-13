@@ -33,6 +33,8 @@ export class UserRespositoryImpl implements UserRepository {
     }
 
     async save(user: User): Promise<void> {
+        // delega para o authentication o gerenciamento da senha
+        delete user.senha
         await this.collection.add(user)
     }
 

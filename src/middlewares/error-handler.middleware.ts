@@ -1,13 +1,9 @@
 import { NextFunction, Response, Request } from "express"
-import { NotFoundError } from "../errors/not-found.error"
-import { ValidationError } from "../errors/validation.error"
 import { InternalServerError } from "../errors/internal-server.error"
+import { ErrorBase } from "../errors/base.error"
 
 export default function errorHandler(error: Error, req: Request, res: Response, next: NextFunction) {
-    if(error instanceof NotFoundError) {
-        return error.send(res)
-    }
-    if(error instanceof ValidationError) {
+    if(error instanceof ErrorBase) {
         return error.send(res)
     }
     new InternalServerError().send(res)     
