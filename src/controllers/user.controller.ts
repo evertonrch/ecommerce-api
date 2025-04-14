@@ -5,6 +5,8 @@ import { UserService } from "../services/user.service";
 export class UserController {
 
     static async getAll(req: Request, res: Response): Promise<any> {
+        console.log(req.user)
+        
         const users = await new UserService().getAll()
         if(users.length === 0) {
             return res.status(204).end()

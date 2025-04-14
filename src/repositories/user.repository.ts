@@ -34,13 +34,11 @@ export class UserRespositoryImpl implements UserRepository {
 
     async save(user: User): Promise<void> {
         // delega para o authentication o gerenciamento da senha
-        delete user.senha
+        delete user.password
         await this.collection.add(user)
     }
 
     async update(id: string, user: User): Promise<void> {
-        await this.getById(id)
-
         await this.collection.doc(id).set({
             nome: user.nome,
             email: user.email

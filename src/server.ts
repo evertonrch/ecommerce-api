@@ -1,10 +1,14 @@
 import "dotenv/config"
 import { log } from "node:console"
-import { initializeApp } from 'firebase-admin/app';
-initializeApp()
+
+import { initializeApp as initializeAdminApp } from "firebase-admin/app";
+import { initializeApp as initializeFirebaseApp } from "firebase/app"
+
+initializeAdminApp()
+initializeFirebaseApp({
+    apiKey: process.env.API_KEY
+})
 
 import app from "./app"
 
-const PORT = process.env.PORT || 3000
-
-app.listen(+PORT, () => log("Server running!"))
+app.listen(process.env.PORT || 3000, () => log("Server running!"))

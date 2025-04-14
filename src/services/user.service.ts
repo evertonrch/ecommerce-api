@@ -19,7 +19,6 @@ export class UserService {
 
     async getById(id: string): Promise<User> {
         const user = await this.userRepository.getById(id)
-        this.userExists(user)
 
         return {
             id: user.id,
@@ -29,23 +28,27 @@ export class UserService {
 
     async save(user: User): Promise<void> {
         const userAuth = await this.authService.create(user)
-        user.id = userAuth.uid
-        await this.userRepository.save(user)
+        await this.userRepository.update(userAuth.uid,user)
     }
 
     async update(id: string, user: User): Promise<void> {
-        this.userExists(id)
+        const userSaved = await this.userRepository.getById(id)
+        console.log(userSaved)
+        if(!userSaved.exists) {
+            throw new NotFoundError("Usuário não encontrado.")
+        }
+
+        await this.authService.update(id, user)
         await this.userRepository.update(id, user)
     }
 
     async delete(id: string): Promise<void> {
-        this.userExists(id)
-        await this.userRepository.delete(id)
-    }
-
-    private userExists(user: any) {
+        const user = await this.userRepository.getById(id)
         if(!user.exists) {
             throw new NotFoundError("Usuário não encontrado.")
         }
+
+        await this.authService.delete(id)
+        await this.userRepository.delete(id)
     }
 }

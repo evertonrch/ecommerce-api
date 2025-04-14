@@ -12,6 +12,6 @@ export class ErrorBase extends Error {
             statusCode: this.status,
             timestamp: new Date().toISOString()
         }
-        return res.status(this.status).send({ message })
+        return res.status(this.status).json(message)
     }
 }
